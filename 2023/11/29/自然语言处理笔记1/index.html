@@ -24,7 +24,7 @@
 <meta property="og:description" content="人们平时对话、写作和交流时使用的语言被称为自然语言。虽然对人类来说语言的天赋仿佛与生俱来，但对计算机来说，让它直接理解和处理自然语言是比较困难的。这是因为自然语言是非结构化的：没有一个统一的语法结构能解释所有的语言；同个语句在不同的语境（上下文）中的涵义甚至有所不同。想让计算机来理解命令或生成文字，关键在于将自然语言转化成一种结构化的表示形式。当自然语言能够像数学语言一样被定量处理时，计算机就可以">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-11-29T14:00:01.000Z">
-<meta property="article:modified_time" content="2023-11-29T14:37:45.931Z">
+<meta property="article:modified_time" content="2023-11-29T14:46:58.729Z">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -273,7 +273,7 @@
               <div class="markdown-body">
                 
                 <p>人们平时对话、写作和交流时使用的语言被称为自然语言。虽然对人类来说语言的天赋仿佛与生俱来，但对计算机来说，让它直接理解和处理自然语言是比较困难的。这是因为自然语言是非结构化的：没有一个统一的语法结构能解释所有的语言；同个语句在不同的语境（上下文）中的涵义甚至有所不同。想让计算机来理解命令或生成文字，关键在于将自然语言转化成一种结构化的表示形式。当自然语言能够像数学语言一样被定量处理时，计算机就可以对自然语言进行分析、理解和回应。这篇文章基于<a target="_blank" rel="noopener" href="https://radimrehurek.com/gensim/intro.html">Gensim</a>的文档，来介绍自然语言处理（NLP）的基础技巧：将文档表示为向量。<em>Gensim旨在使用无监督机器学习算法处理原始的非结构化纯文本</em>。</p>
-<h4 id="一、基础概念"><a href="#一、基础概念" class="headerlink" title="一、基础概念"></a>一、基础概念</h4><ol>
+<h4 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h4><ol>
 <li><p>Document</p>
 <p>文档（Document）是<code>字符串</code>，包括句子、段落或文章等。例如：</p>
 <figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">document</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;人工智能的快速发展正在改变我们的生活方式。&quot;</span><br></code></pre></td></tr></table></figure>
@@ -283,7 +283,8 @@
 <figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">text_corpus</span> = [<br>    <span class="hljs-string">&quot;人工智能的快速发展正在改变我们的生活方式。&quot;</span>,<br>    <span class="hljs-string">&quot;健康饮食和锻炼是保持身体健康的重要方式。&quot;</span>,<br>    <span class="hljs-string">&quot;人类探索太空的努力正在取得令人瞩目的成果。&quot;</span>,<br>    <span class="hljs-string">&quot;自然语言处理是人工智能领域中的一个重要方向。&quot;</span>,<br>    <span class="hljs-string">&quot;Python有着众多优秀的第三方库和框架。&quot;</span><br>]<br></code></pre></td></tr></table></figure>
 
 <p>实际使用时，语料库可能非常大，因此一次性将整个语料库加载到内存里不合适，Gensim通过一次传输一个文档的<code>流式传输</code>来智能地处理大型语料库。</p>
-<h5 id="对语料库的预处理：分词与过滤"><a href="#对语料库的预处理：分词与过滤" class="headerlink" title="对语料库的预处理：分词与过滤"></a>对语料库的预处理：分词与过滤</h5><p>text_corpus列表中每个文档字符串看起来很长，而且有些字词（例如“的”）在文档中经常出现，因此可以对语料库中的文档进行分词（更一般地称<em>Tokenization</em>）和过滤等预处理。</p>
+<p><strong>对语料库的预处理：分词与过滤</strong></p>
+<p>text_corpus列表中每个文档字符串看起来很长，而且有些字词（例如“的”）在文档中经常出现，因此可以对语料库中的文档进行分词（更一般地称<em>Tokenization</em>）和过滤等预处理。</p>
 <ul>
 <li><p>对于英文字符串的分词，最简单的就是用空格来将一句话拆分成一个个单词。</p>
 </li>
@@ -339,10 +340,10 @@
 <p>模型（Model）可以对向量（Vector）进行转换，即把文档从一种表示形式转换为另一种表示形式。</p>
 <p>模型的一个简单示例是tf-idf。tf-idf 模型将向量从词袋表示转换到另一个向量空间，其中在该向量空间中的频数会根据语料库中每个单词的相对稀有度进行加权。</p>
 <p>例：初始化 tf-idf 模型，在bow_corpus上对其进行训练：</p>
-<figure class="highlight capnproto"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs capnproto"><span class="hljs-keyword">from</span> gensim <span class="hljs-keyword">import</span> models<br><br><span class="hljs-comment"># train the model</span><br>tfidf = models.TfidfModel(bow_corpus)<br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> gensim <span class="hljs-keyword">import</span> models<br><br><span class="hljs-comment"># train the model</span><br>tfidf = models.TfidfModel(bow_corpus)<br></code></pre></td></tr></table></figure>
 
 <p>创建模型后，可以通过 TfIdf 转换整个语料库并对其进行索引，为相似性查询做准备</p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-keyword">from</span> gensim <span class="hljs-keyword">import</span> similarities<br><br><span class="hljs-keyword">index</span> = similarities.SparseMatrixSimilarity(tfidf[bow_corpus], num_features=<span class="hljs-number">12</span>)<br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> gensim <span class="hljs-keyword">import</span> similarities<br><br>index = similarities.SparseMatrixSimilarity(tfidf[bow_corpus], num_features=<span class="hljs-number">12</span>)<br></code></pre></td></tr></table></figure>
 
 <p>现在假设来了一个新的字符串<code>query_document=&quot;人工智能与NLP&quot;</code>，我们可以查询它与<code>processed_corpus</code>中的哪个text更像。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python">query_document = jieba.lcut(<span class="hljs-string">&#x27;人工智能与NLP&#x27;</span>)<br>query_bow = dictionary.doc2bow(query_document)<br>sims = index[tfidf[query_bow]]<br><span class="hljs-built_in">print</span>(<span class="hljs-built_in">list</span>(<span class="hljs-built_in">enumerate</span>(sims)))<br></code></pre></td></tr></table></figure>
