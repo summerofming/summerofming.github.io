@@ -1,0 +1,693 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="人们平时对话、写作和交流时使用的语言被称为自然语言。虽然对人类来说语言的天赋仿佛与生俱来，但对计算机来说，让它直接理解和处理自然语言是比较困难的。这是因为自然语言是非结构化的：没有一个统一的语法结构能解释所有的语言；同个语句在不同的语境（上下文）中的涵义甚至有所不同。想让计算机来理解命令或生成文字，关键在于将自然语言转化成一种结构化的表示形式。当自然语言能够像数学语言一样被定量处理时，计算机就可以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自然语言处理（一）：语义向量">
+<meta property="og:url" content="http://example.com/2023/11/29/gensim1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="人们平时对话、写作和交流时使用的语言被称为自然语言。虽然对人类来说语言的天赋仿佛与生俱来，但对计算机来说，让它直接理解和处理自然语言是比较困难的。这是因为自然语言是非结构化的：没有一个统一的语法结构能解释所有的语言；同个语句在不同的语境（上下文）中的涵义甚至有所不同。想让计算机来理解命令或生成文字，关键在于将自然语言转化成一种结构化的表示形式。当自然语言能够像数学语言一样被定量处理时，计算机就可以">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-11-29T14:00:01.000Z">
+<meta property="article:modified_time" content="2023-11-29T14:34:22.530Z">
+<meta property="article:tag" content="笔记">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>自然语言处理（一）：语义向量 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Starry</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="自然语言处理（一）：语义向量"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-11-29 22:00" pubdate>
+          2023年11月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          44 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">自然语言处理（一）：语义向量</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>人们平时对话、写作和交流时使用的语言被称为自然语言。虽然对人类来说语言的天赋仿佛与生俱来，但对计算机来说，让它直接理解和处理自然语言是比较困难的。这是因为自然语言是非结构化的：没有一个统一的语法结构能解释所有的语言；同个语句在不同的语境（上下文）中的涵义甚至有所不同。想让计算机来理解命令或生成文字，关键在于将自然语言转化成一种结构化的表示形式。当自然语言能够像数学语言一样被定量处理时，计算机就可以对自然语言进行分析、理解和回应。这篇文章基于<a target="_blank" rel="noopener" href="https://radimrehurek.com/gensim/intro.html">Gensim</a>的文档，来介绍自然语言处理（NLP）的基础技巧：将文档表示为向量。<em>Gensim旨在使用无监督机器学习算法处理原始的非结构化纯文本</em>。</p>
+<h4 id="一、基础概念"><a href="#一、基础概念" class="headerlink" title="一、基础概念"></a>一、基础概念</h4><ol>
+<li><p>Document</p>
+<p>文档（Document）是<code>字符串</code>，包括句子、段落或文章等。例如：</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">document</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;人工智能的快速发展正在改变我们的生活方式。&quot;</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p>Corpus</p>
+<p>语料库（Corpus）是Document的<code>集合</code>。例如下面由5个文档构成的语料库：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">text_corpus</span> = [<br>    <span class="hljs-string">&quot;人工智能的快速发展正在改变我们的生活方式。&quot;</span>,<br>    <span class="hljs-string">&quot;健康饮食和锻炼是保持身体健康的重要方式。&quot;</span>,<br>    <span class="hljs-string">&quot;人类探索太空的努力正在取得令人瞩目的成果。&quot;</span>,<br>    <span class="hljs-string">&quot;自然语言处理是人工智能领域中的一个重要方向。&quot;</span>,<br>    <span class="hljs-string">&quot;Python有着众多优秀的第三方库和框架。&quot;</span><br>]<br></code></pre></td></tr></table></figure>
+
+<p>实际使用时，语料库可能非常大，因此一次性将整个语料库加载到内存里不合适，Gensim通过一次传输一个文档的<code>流式传输</code>来智能地处理大型语料库。</p>
+<h5 id="对语料库的预处理：分词与过滤"><a href="#对语料库的预处理：分词与过滤" class="headerlink" title="对语料库的预处理：分词与过滤"></a>对语料库的预处理：分词与过滤</h5><p>text_corpus列表中每个文档字符串看起来很长，而且有些字词（例如“的”）在文档中经常出现，因此可以对语料库中的文档进行分词（更一般地称<em>Tokenization</em>）和过滤等预处理。</p>
+<ul>
+<li><p>对于英文字符串的分词，最简单的就是用空格来将一句话拆分成一个个单词。</p>
+</li>
+<li><p>对于中文字符串的分词，简单的可以采用jieba等传统分词方法。</p>
+</li>
+<li><p>对于Transformer等深度学习模型在处理自然语言时通常采用基于子词（subword）或字级别的分词，而不是传统的词级别分词。</p>
+</li>
+</ul>
+<p>接下来用python的jieba库，对上述text_corpus语料库进行分词：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># -*- coding: utf-8 -*-</span><br><span class="hljs-keyword">import</span> jieba<br><span class="hljs-keyword">import</span> pprint<br><br>text_corpus = [<br>    <span class="hljs-string">&quot;人工智能的快速发展正在改变我们的生活方式。&quot;</span>,<br>    <span class="hljs-string">&quot;Python可以实现文本分类等NLP任务。&quot;</span>,<br>    <span class="hljs-string">&quot;人工智能领域正取得令人瞩目的成果。&quot;</span>,<br>    <span class="hljs-string">&quot;NLP是人工智能领域中的一个重要方向。&quot;</span>,<br>    <span class="hljs-string">&quot;Python有着众多优秀的第三方库和框架。&quot;</span><br>]<br><br>texts = []<br><span class="hljs-keyword">for</span> document <span class="hljs-keyword">in</span> text_corpus:<br>    texts.append(jieba.lcut(document))<br>pprint.pprint(texts)<br></code></pre></td></tr></table></figure>
+
+<p>输出为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">[[&#x27;人工智能&#x27;, &#x27;的&#x27;, &#x27;快速&#x27;, &#x27;发展&#x27;, &#x27;正在&#x27;, &#x27;改变&#x27;, &#x27;我们&#x27;, &#x27;的&#x27;, &#x27;生活&#x27;, &#x27;方式&#x27;, &#x27;。&#x27;],<br> [&#x27;Python&#x27;, &#x27;可以&#x27;, &#x27;实现&#x27;, &#x27;文本&#x27;, &#x27;分类&#x27;, &#x27;等&#x27;, &#x27;NLP&#x27;, &#x27;任务&#x27;, &#x27;。&#x27;],<br> [&#x27;人工智能&#x27;, &#x27;领域&#x27;, &#x27;正&#x27;, &#x27;取得&#x27;, &#x27;令人瞩目&#x27;, &#x27;的&#x27;, &#x27;成果&#x27;, &#x27;。&#x27;],<br> [&#x27;NLP&#x27;, &#x27;是&#x27;, &#x27;人工智能&#x27;, &#x27;领域&#x27;, &#x27;中&#x27;, &#x27;的&#x27;, &#x27;一个&#x27;, &#x27;重要&#x27;, &#x27;方向&#x27;, &#x27;。&#x27;],<br> [&#x27;Python&#x27;, &#x27;有着&#x27;, &#x27;众多&#x27;, &#x27;优秀&#x27;, &#x27;的&#x27;, &#x27;第三方&#x27;, &#x27;库&#x27;, &#x27;和&#x27;, &#x27;框架&#x27;, &#x27;。&#x27;]]<br></code></pre></td></tr></table></figure>
+
+<p>继续统计字词的频率，并去除高频常用词：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> defaultdict<br>frequency = defaultdict(<span class="hljs-built_in">int</span>)<br><span class="hljs-comment"># 统计词频</span><br><span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> texts:<br>    <span class="hljs-keyword">for</span> token <span class="hljs-keyword">in</span> text:<br>        frequency[token] += <span class="hljs-number">1</span><br><span class="hljs-comment">#print(dict(frequency))</span><br><br><span class="hljs-comment"># 创建待过滤的高频词列表</span><br>stoplist = <span class="hljs-built_in">set</span>(<span class="hljs-string">&#x27;的 是 和 中 一个 有着 。&#x27;</span>.split(<span class="hljs-string">&#x27; &#x27;</span>))<br><span class="hljs-comment"># 提取语料库主要内容</span><br>processed_corpus = [[token <span class="hljs-keyword">for</span> token <span class="hljs-keyword">in</span> text <span class="hljs-keyword">if</span> (token <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> stoplist) &amp; (frequency[token] &gt; <span class="hljs-number">1</span>)] <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> texts]<br>pprint.pprint(processed_corpus)<br></code></pre></td></tr></table></figure>
+
+<p>输出为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">[[&#x27;人工智能&#x27;], [&#x27;Python&#x27;, &#x27;NLP&#x27;], [&#x27;人工智能&#x27;, &#x27;领域&#x27;], [&#x27;NLP&#x27;, &#x27;人工智能&#x27;, &#x27;领域&#x27;], [&#x27;Python&#x27;]]<br></code></pre></td></tr></table></figure>
+
+<p>因此，经过预处理之后，语料库的主要信息被提取成与“人工智能、NLP、Python、领域”这四个token相关的内容。</p>
+<p>接着，还可以使用<code>gensim.corpora.Dictionary</code> 类将语料库中每个<strong>独一</strong>的token与唯一的整数ID相关联：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> gensim <span class="hljs-keyword">import</span> corpora<br><br>dictionary = corpora.Dictionary(processed_corpus)<br><span class="hljs-built_in">print</span>(<span class="hljs-built_in">dict</span>(dictionary))<br><span class="hljs-comment"># &#123;0:&#x27;人工智能&#x27;, 1:&#x27;NLP&#x27;, 2:&#x27;Python&#x27;, 3:&#x27;领域&#x27;&#125;</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p>Vector</p>
+<p>为了能对文档（Document）进行结构化的处理，需要将每个文档转化成数学向量（Vector）。</p>
+<ul>
+<li><p>第一种方法是将每个文档表示为特征向量。</p>
+<p>例如可以手动构造一些特征问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">1. &quot;人工智能&quot;这个词在该文档中出现了多少次？<br>2. 该文档由多少个段落组成？<br>3. 该文档使用了多少种字体？<br></code></pre></td></tr></table></figure>
+
+<p>在以上特征问题下，<code>document1 = &quot;人工智能的快速发展正在改变我们的生活方式。&quot;</code>对应的回答是<code>(1, 1, 1)</code>，<code>document2 = &quot;Python可以实现文本分类等NLP任务。&quot;</code>对应的回答是<code>(0, 1, 1)</code>。这样我们就将每个文档转化成一系列对应特征问题的稠密(dense)向量。当然，这种向量表示的形式依赖于我们的特征问题问的是否恰当，因此适用于文档的特征比较明确的情况下。另外，在Gensim中只允许问答案是（或可以转换为）单个浮点数的问题。</p>
+<p>如果我们用同一组特征问题来将语料库中的每个文档都表示成对应的特征向量，例如得到document_x &#x3D; (1, 2, 3)，document_y &#x3D; (0.9, 2.1, 3.1)，我们会认为document_x和document_y非常相近，从而认为这两个文档原来的字符串是相似的。</p>
+</li>
+<li><p>第二种方法叫做词袋模型（bag-of-words model）。</p>
+<p>在词袋模型下，每个文档都由一个数学向量表示，该向量是<strong>字典中每个单词在文档中出现的频数</strong>。</p>
+<p>例如，假设我们事先有一本包含单词的字典，字典里面有四个单词：”咖啡”、 “牛奶”、”糖”、”勺子”。那么对于文档<code>document_0 = &quot;一杯咖啡牛奶。&quot;</code>则可以表示成向量<code>(1,1,0,0)</code>，因为这个文档字符串中出现了1次”咖啡”、1次”牛奶”、0次”糖”、0次”勺子”。</p>
+<p>词袋模型的一个重要特点是它完全忽略了编码文档中token的顺序。</p>
+<p>回到上面预处理过程中<code>processed_corpus</code>的例子，其中</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">processed_corpus = <br>[[&#x27;人工智能&#x27;], <br> [&#x27;Python&#x27;, &#x27;NLP&#x27;], <br> [&#x27;人工智能&#x27;, &#x27;领域&#x27;], <br> [&#x27;NLP&#x27;, &#x27;人工智能&#x27;, &#x27;领域&#x27;], <br> [&#x27;Python&#x27;]]<br></code></pre></td></tr></table></figure>
+
+<p>我们通过<code>dictionary = corpora.Dictionary(processed_corpus)</code>语句构建了一个字典<code>&#123;0:&#39;人工智能&#39;, 1:&#39;NLP&#39;, 2:&#39;Python&#39;, 3:&#39;领域&#39;&#125;</code>，现在看看在这个字典下，processed_corpus可以表示成什么：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">bow_corpus = [dictionary.doc2bow(text) <span class="hljs-keyword">for</span> text <span class="hljs-keyword">in</span> processed_corpus]<br>pprint.pprint(bow_corpus)<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">[[(0, 1)],<br> [(1, 1), (2, 1)],<br> [(0, 1), (3, 1)],<br> [(0, 1), (1, 1), (3, 1)],<br> [(2, 1)]]<br></code></pre></td></tr></table></figure>
+
+<p>这样我们就把processed_corpus表示成了一系列的向量。其中第一行<code>[(0, 1)]</code>对应于<code>[&#39;人工智能&#39;]</code>，元组(0, 1)中的0代表在字典中的ID&#x3D;0，元组(0, 1)中的1代表字典中的元素在该文档中出现的频数为1次。</p>
+<p>由于任何给定文档仅包含字典中众多单词中的几个单词，因此作为节省空间的措施，未出现在矢量化中的单词将隐式表示为零。</p>
+</li>
+</ul>
+</li>
+<li><p>Model</p>
+<p>模型（Model）可以对向量（Vector）进行转换，即把文档从一种表示形式转换为另一种表示形式。</p>
+<p>模型的一个简单示例是tf-idf。tf-idf 模型将向量从词袋表示转换到另一个向量空间，其中在该向量空间中的频数会根据语料库中每个单词的相对稀有度进行加权。</p>
+<p>例：初始化 tf-idf 模型，在bow_corpus上对其进行训练：</p>
+<figure class="highlight capnproto"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs capnproto"><span class="hljs-keyword">from</span> gensim <span class="hljs-keyword">import</span> models<br><br><span class="hljs-comment"># train the model</span><br>tfidf = models.TfidfModel(bow_corpus)<br></code></pre></td></tr></table></figure>
+
+<p>创建模型后，可以通过 TfIdf 转换整个语料库并对其进行索引，为相似性查询做准备</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-keyword">from</span> gensim <span class="hljs-keyword">import</span> similarities<br><br><span class="hljs-keyword">index</span> = similarities.SparseMatrixSimilarity(tfidf[bow_corpus], num_features=<span class="hljs-number">12</span>)<br></code></pre></td></tr></table></figure>
+
+<p>现在假设来了一个新的字符串<code>query_document=&quot;人工智能与NLP&quot;</code>，我们可以查询它与<code>processed_corpus</code>中的哪个text更像。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python">query_document = jieba.lcut(<span class="hljs-string">&#x27;人工智能与NLP&#x27;</span>)<br>query_bow = dictionary.doc2bow(query_document)<br>sims = index[tfidf[query_bow]]<br><span class="hljs-built_in">print</span>(<span class="hljs-built_in">list</span>(<span class="hljs-built_in">enumerate</span>(sims)))<br></code></pre></td></tr></table></figure>
+
+<p>结果显示：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">[(0, 0.4869355), (1, 0.61761385), (2, 0.23710617), (3, 0.75315946), (4, 0.0)]<br></code></pre></td></tr></table></figure>
+
+<p>注意到<code>&quot;人工智能与NLP&quot;</code>本来就与processed_corpus中的<code>[&#39;NLP&#39;, &#39;人工智能&#39;, &#39;领域&#39;]</code>最为相关，结果也确实显示了(3, 0.75315946)对应的相似度最高，达到75.3%。</p>
+</li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>自然语言处理（一）：语义向量</div>
+      <div>http://example.com/2023/11/29/gensim1/</div>
+    </div>
+    <div class="license-meta">
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年11月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/11/20/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E7%AC%94%E8%AE%B01/" title="自然语言处理笔记（一）：语义向量">
+                        <span class="hidden-mobile">自然语言处理笔记（一）：语义向量</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
