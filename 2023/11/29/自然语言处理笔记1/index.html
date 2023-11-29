@@ -24,7 +24,7 @@
 <meta property="og:description" content="人们平时对话、写作和交流时使用的语言被称为自然语言。虽然对人类来说语言的天赋仿佛与生俱来，但对计算机来说，让它直接理解和处理自然语言是比较困难的。这是因为自然语言是非结构化的：没有一个统一的语法结构能解释所有的语言；同个语句在不同的语境（上下文）中的涵义甚至有所不同。想让计算机来理解命令或生成文字，关键在于将自然语言转化成一种结构化的表示形式。当自然语言能够像数学语言一样被定量处理时，计算机就可以">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-11-29T14:00:01.000Z">
-<meta property="article:modified_time" content="2023-11-29T14:48:22.621Z">
+<meta property="article:modified_time" content="2023-11-29T14:55:04.252Z">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -276,11 +276,11 @@
 <h3 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h3><ol>
 <li><p>Document</p>
 <p>文档（Document）是<code>字符串</code>，包括句子、段落或文章等。例如：</p>
-<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">document</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;人工智能的快速发展正在改变我们的生活方式。&quot;</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">document = &quot;人工智能的快速发展正在改变我们的生活方式。&quot;<br></code></pre></td></tr></table></figure>
 </li>
 <li><p>Corpus</p>
 <p>语料库（Corpus）是Document的<code>集合</code>。例如下面由5个文档构成的语料库：</p>
-<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">text_corpus</span> = [<br>    <span class="hljs-string">&quot;人工智能的快速发展正在改变我们的生活方式。&quot;</span>,<br>    <span class="hljs-string">&quot;健康饮食和锻炼是保持身体健康的重要方式。&quot;</span>,<br>    <span class="hljs-string">&quot;人类探索太空的努力正在取得令人瞩目的成果。&quot;</span>,<br>    <span class="hljs-string">&quot;自然语言处理是人工智能领域中的一个重要方向。&quot;</span>,<br>    <span class="hljs-string">&quot;Python有着众多优秀的第三方库和框架。&quot;</span><br>]<br></code></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">text_corpus = [<br>    &quot;人工智能的快速发展正在改变我们的生活方式。&quot;,<br>    &quot;健康饮食和锻炼是保持身体健康的重要方式。&quot;,<br>    &quot;人类探索太空的努力正在取得令人瞩目的成果。&quot;,<br>    &quot;自然语言处理是人工智能领域中的一个重要方向。&quot;,<br>    &quot;Python有着众多优秀的第三方库和框架。&quot;<br>]<br></code></pre></td></tr></table></figure>
 
 <p>实际使用时，语料库可能非常大，因此一次性将整个语料库加载到内存里不合适，Gensim通过一次传输一个文档的<code>流式传输</code>来智能地处理大型语料库。</p>
 <p><strong>对语料库的预处理：分词与过滤</strong></p>
